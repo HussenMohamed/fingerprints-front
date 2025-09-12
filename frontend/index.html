@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fingerprint Scanner</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Fingerprint Authentication System</h1>
+        <p>Secure fingerprint scanning interface</p>
+      </header>
+
+      <main class="scanner-interface">
+        <!-- Status Display -->
+        <div id="status-display" class="status-card">
+          <div class="status-icon" id="status-icon">🔍</div>
+          <h2 id="status-title">Ready to Scan</h2>
+          <p id="status-message">
+            Click "Start Scan" to begin fingerprint capture
+          </p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="button-group">
+          <button id="scan-button" class="btn btn-primary">
+            <span class="btn-icon">👆</span>
+            Start Scan
+          </button>
+          <button
+            id="cancel-button"
+            class="btn btn-secondary"
+            style="display: none"
+          >
+            Cancel
+          </button>
+        </div>
+
+        <!-- Fingerprint Preview -->
+        <div id="preview-section" class="preview-section" style="display: none">
+          <h3>Captured Fingerprint</h3>
+          <div class="image-container">
+            <img id="fingerprint-preview" alt="Captured Fingerprint" />
+          </div>
+
+          <div class="preview-actions">
+            <button id="retake-button" class="btn btn-secondary">
+              <span class="btn-icon">🔄</span>
+              Retake
+            </button>
+            <button id="upload-button" class="btn btn-success">
+              <span class="btn-icon">📤</span>
+              Upload to System
+            </button>
+          </div>
+        </div>
+
+        <!-- Progress Indicator -->
+        <div id="progress-bar" class="progress-bar" style="display: none">
+          <div class="progress-fill"></div>
+        </div>
+
+        <!-- Debug Info (for development) -->
+        <div id="debug-section" class="debug-section">
+          <h4>System Status</h4>
+          <div id="debug-info">
+            <p>
+              <strong>Service Status:</strong>
+              <span id="service-status">Checking...</span>
+            </p>
+            <p><strong>Last Update:</strong> <span id="last-update">-</span></p>
+            <p>
+              <strong>Capture Count:</strong> <span id="capture-count">0</span>
+            </p>
+          </div>
+        </div>
+      </main>
+
+      <footer>
+        <p>Fingerprint Scanner Interface v1.0</p>
+      </footer>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
