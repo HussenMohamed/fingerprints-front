@@ -8,7 +8,7 @@ class FingerprintBridgeHandler(BaseHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         self.project_root = os.path.dirname(os.path.abspath(__file__))
         self.communication_dir = os.path.join(os.path.dirname(self.project_root), "communication")
-        self.frontend_dir = os.path.join(os.path.dirname(self.project_root), "frontend")
+        self.frontend_dir = os.path.join(os.path.dirname(self.project_root), "frontend-vue")
         super().__init__(*args, **kwargs)
     
     def do_GET(self):
