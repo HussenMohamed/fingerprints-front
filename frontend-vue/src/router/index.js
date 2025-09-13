@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginPage from '../pages/LoginPage.vue'
 import RegisterPage from '../pages/RegisterPage.vue'
+import DashboardPage from '../pages/DashboardPage.vue'
 
 const routes = [
   {
@@ -18,6 +19,12 @@ const routes = [
     name: 'Register', 
     component: RegisterPage,
     meta: { title: 'Register - Fingerprint Scanner' }
+  },
+  {
+    path: '/dashboard',
+    name: 'Dashboard',
+    component: DashboardPage,
+    meta: { title: 'Dashboard - Fingerprint Scanner' }
   }
 ]
 
