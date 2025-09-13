@@ -80,28 +80,34 @@ const handleLogin = async () => {
     // Send fingerprint for authentication
     const result = await authenticateWithFingerprint(capturedImageBase64.value);
 
-    if (result.success) {
+    if (result.matched) {
       // Store authentication state
       localStorage.setItem("isAuthenticated", "true");
-      localStorage.setItem("userToken", result.token || "demo-token");
-      localStorage.setItem("userInfo", JSON.stringify(result.user || { name: "User" }));
+      localStorage.setItem("userInfo", JSON.stringify(result.user));
       localStorage.setItem("loginTime", new Date().toISOString());
+      localStorage.setItem("loginProbability", result.probability.toString());
 
       // Show success message
       status.value = "success";
       statusTitle.value = "Login Successful";
-      statusMessage.value = `Welcome back! Redirecting to dashboard...`;
+      statusMessage.value = `Welcome ${result.user?.fullName || 'User'}! Match: ${result.probability}%`;
 
-      // In a real app, redirect to dashboard
+      // Redirect to dashboard
       setTimeout(() => {
-        alert("Login successful! Dashboard would open here.");
-        // router.push('/dashboard')
+        // For now, show user info (later this will be router.push('/dashboard'))
+        showUserDashboard(result.user, result.probability);
       }, 2000);
     } else {
       status.value = "error";
-      statusTitle.value = "Login Failed";
-      statusMessage.value =
-        result.message || "Fingerprint not recognized. Please try again.";
+      statusTitle.value = "Fingerprint Not Recognized";
+      statusMessage.value = "No matching fingerprint found. Please register or try again.";
+      
+      // Show register suggestion after a delay
+      setTimeout(() => {
+        status.value = "error";
+        statusTitle.value = "Not Registered?";
+        statusMessage.value = "If you haven't registered yet, please click 'Register here' below.";
+      }, 3000);
     }
   } catch (error) {
     status.value = "error";
@@ -111,18 +117,48 @@ const handleLogin = async () => {
   }
 };
 
+const showUserDashboard = (user, probability) => {
+  // For now, show an alert with user info (later this will be a proper dashboard page)
+  const dashboardInfo = `
+🎉 Login Successful!
+
+👤 User Information:
+Name: ${user.fullName}
+ID: ${user.id}
+Attendance Count: ${user.attendanceCount}
+Created: ${new Date(user.creationDate).toLocaleDateString()}
+
+🔍 Match Details:
+Confidence: ${probability}%
+Login Time: ${new Date().toLocaleString()}
+  `;
+  
+  alert(dashboardInfo);
+  
+  // TODO: Later replace with router.push('/dashboard')
+  // router.push('/dashboard')
+};
+
 const authenticateWithFingerprint = async (base64Image) => {
   try {
+    // Convert base64 to blob for multipart/form-data upload
+    const byteCharacters = atob(base64Image);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: "image/bmp" });
+    
+    // Create FormData for multipart/form-data
+    const formData = new FormData();
+    formData.append('file', blob, 'fingerprint.bmp');
+
     const response = await fetch(
       "http://10.21.54.237:8001/api/admin/fingerprint/verify",
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          file: base64Image,
-        }),
+        body: formData, // No Content-Type header, let browser set it with boundary
       }
     );
 
@@ -131,7 +167,17 @@ const authenticateWithFingerprint = async (base64Image) => {
     }
 
     const result = await response.json();
-    return result;
+    
+    // Transform backend response to match our expected format
+    return {
+      success: result.matched,
+      matched: result.matched,
+      probability: result.probability,
+      user: result.user || null,
+      message: result.matched 
+        ? `Fingerprint matched with ${result.probability}% confidence` 
+        : "Fingerprint not recognized. Please try again or register."
+    };
   } catch (error) {
     console.error("Authentication API error:", error);
     throw error;

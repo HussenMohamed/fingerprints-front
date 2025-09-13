@@ -32,18 +32,24 @@
       <div v-else-if="currentStep === 'fingerprints'" class="fingerprint-step">
         <div class="progress-header">
           <h3>Step 2: Fingerprint Registration</h3>
-          <div class="fingerprint-progress">
-            <span>Fingerprint {{ currentFingerprintIndex + 1 }} of 3</span>
-            <div class="progress-dots">
-              <div
-                v-for="i in 3"
-                :key="i"
-                class="dot"
-                :class="{
-                  completed: i <= capturedFingerprints.length,
-                  active: i === currentFingerprintIndex + 1,
-                }"
-              ></div>
+          <div class="thumb-progress">
+            <div class="current-thumb-info">
+              <h4>
+                {{ currentThumb === "right" ? "Right Thumb" : "Left Thumb" }}
+              </h4>
+              <span>Scan {{ currentThumbCompletedScans + 1 }} of 5</span>
+            </div>
+            <div class="overall-progress">
+              <span
+                >Overall Progress: {{ completedScans }} of
+                {{ totalScans }} scans</span
+              >
+              <div class="progress-bar-container">
+                <div
+                  class="progress-bar-fill"
+                  :style="{ width: progressPercentage + '%' }"
+                ></div>
+              </div>
             </div>
           </div>
         </div>
@@ -58,7 +64,7 @@
         <div class="button-group">
           <ScanButton
             :is-scanning="isScanning"
-            :button-text="getScanButtonText()"
+            :button-text="getScanButtonText"
             @start-scan="startScan"
           />
 
@@ -70,34 +76,50 @@
         <PreviewSection
           v-if="capturedImage"
           :image-url="capturedImage"
-          :action-text="'Confirm Fingerprint'"
+          :action-text="'Confirm Scan'"
           @retake-scan="retakeScan"
           @confirm-action="confirmFingerprint"
         />
 
-        <!-- Captured Fingerprints Display -->
-        <div
-          v-if="capturedFingerprints.length > 0"
-          class="captured-fingerprints"
-        >
-          <h4>Captured Fingerprints:</h4>
-          <div class="fingerprint-list">
-            <div
-              v-for="(fp, index) in capturedFingerprints"
-              :key="index"
-              class="fingerprint-item"
-            >
-              <img :src="fp.imageUrl" :alt="`Fingerprint ${index + 1}`" />
-              <span>Fingerprint {{ index + 1 }}</span>
+        <!-- Captured Scans Display -->
+        <div class="captured-scans" v-if="completedScans > 0">
+          <div class="thumb-section" v-if="rightThumbScans.length > 0">
+            <h4>Right Thumb Scans ({{ rightThumbScans.length }}/5):</h4>
+            <div class="scan-list">
+              <div
+                v-for="(scan, index) in rightThumbScans"
+                :key="`right-${index}`"
+                class="scan-item"
+              >
+                <img
+                  :src="scan.imageUrl"
+                  :alt="`Right Thumb Scan ${index + 1}`"
+                />
+                <span>Scan {{ index + 1 }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="thumb-section" v-if="leftThumbScans.length > 0">
+            <h4>Left Thumb Scans ({{ leftThumbScans.length }}/5):</h4>
+            <div class="scan-list">
+              <div
+                v-for="(scan, index) in leftThumbScans"
+                :key="`left-${index}`"
+                class="scan-item"
+              >
+                <img
+                  :src="scan.imageUrl"
+                  :alt="`Left Thumb Scan ${index + 1}`"
+                />
+                <span>Scan {{ index + 1 }}</span>
+              </div>
             </div>
           </div>
         </div>
 
-        <div
-          v-if="capturedFingerprints.length === 3"
-          class="complete-registration"
-        >
-          <button @click="completeRegistration" class="btn btn-success">
+        <div v-if="isAllScansComplete" class="complete-registration">
+          <button @click="handleCompleteRegistration" class="btn btn-success">
             Complete Registration
           </button>
         </div>
@@ -109,14 +131,25 @@
           <div class="success-icon">✅</div>
           <h3>Registration Complete!</h3>
           <p>
-            Your account has been created successfully with 3 fingerprints
-            registered.
+            Your account has been created successfully with
+            {{ completedScans }} fingerprint scans registered ({{
+              rightThumbScans.length
+            }}
+            right thumb + {{ leftThumbScans.length }} left thumb).
           </p>
 
           <div class="user-summary">
             <h4>Account Details:</h4>
             <p><strong>Name:</strong> {{ userDetails.fullName }}</p>
-            <p><strong>Fingerprints:</strong> 3 registered</p>
+            <p>
+              <strong>Right Thumb Scans:</strong>
+              {{ rightThumbScans.length }} registered
+            </p>
+            <p>
+              <strong>Left Thumb Scans:</strong>
+              {{ leftThumbScans.length }} registered
+            </p>
+            <p><strong>Total Scans:</strong> {{ completedScans }} registered</p>
           </div>
 
           <router-link to="/login" class="btn btn-primary">
@@ -136,24 +169,14 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
 import { useFingerprintScanner } from "../composables/useFingerprintScanner";
+import { useRegistration } from "../composables/useRegistration";
 import Navigation from "../components/Navigation.vue";
 import StatusCard from "../components/StatusCard.vue";
 import ScanButton from "../components/ScanButton.vue";
 import CancelButton from "../components/CancelButton.vue";
 import ProgressBar from "../components/ProgressBar.vue";
 import PreviewSection from "../components/PreviewSection.vue";
-
-const currentStep = ref("details"); // 'details', 'fingerprints', 'complete'
-const currentFingerprintIndex = ref(0);
-const capturedFingerprints = ref([]);
-
-const userDetails = ref({
-  fullName: "",
-  email: "",
-  department: "",
-});
 
 const {
   status,
@@ -162,122 +185,82 @@ const {
   statusIcon,
   isScanning,
   capturedImage,
+  capturedImageBase64,
   startScan,
   cancelScan,
   retakeScan,
 } = useFingerprintScanner();
 
-const getScanButtonText = () => {
-  if (isScanning.value) return "Scanning...";
-  if (currentFingerprintIndex.value === 0) return "Scan First Fingerprint";
-  if (currentFingerprintIndex.value === 1) return "Scan Second Fingerprint";
-  if (currentFingerprintIndex.value === 2) return "Scan Third Fingerprint";
-  return "Scan Fingerprint";
-};
+const {
+  currentStep,
+  currentThumb,
+  currentScanNumber,
+  rightThumbScans,
+  leftThumbScans,
+  userDetails,
+  isProcessing,
+  totalScans,
+  completedScans,
+  currentThumbCompletedScans,
+  isCurrentThumbComplete,
+  isAllScansComplete,
+  progressPercentage,
+  getCurrentScanPrompt,
+  getScanButtonText,
+  goToStep,
+  validateUserDetails,
+  addFingerprint,
+  completeRegistration,
+  getOrdinalNumber,
+} = useRegistration();
 
 const startFingerprintCapture = () => {
-  currentStep.value = "fingerprints";
+  goToStep("fingerprints");
   status.value = "ready";
-  statusTitle.value = "Ready for First Fingerprint";
-  statusMessage.value = 'Click "Scan First Fingerprint" to begin';
+  statusTitle.value = getCurrentScanPrompt.value;
+  statusMessage.value = `Click "${getScanButtonText.value}" to begin`;
 };
 
 const confirmFingerprint = async () => {
-  if (!capturedImage.value) return;
+  if (!capturedImage.value || !capturedImageBase64.value) return;
 
-  // Store the captured fingerprint
+  // Store the captured fingerprint scan
   const fingerprintData = {
-    index: currentFingerprintIndex.value,
     imageUrl: capturedImage.value,
-    timestamp: new Date().toISOString(),
+    base64: capturedImageBase64.value,
+    quality: "good", // Mock quality assessment
   };
 
-  capturedFingerprints.value.push(fingerprintData);
+  const result = await addFingerprint(fingerprintData);
 
-  // Mock upload to backend
-  await mockUploadFingerprint(fingerprintData);
-
-  // Move to next fingerprint or complete
-  if (capturedFingerprints.value.length < 3) {
-    currentFingerprintIndex.value++;
+  if (result.success) {
     // Reset for next scan
     capturedImage.value = null;
-    status.value = "ready";
-    statusTitle.value = `Ready for ${getOrdinalNumber(
-      currentFingerprintIndex.value + 1
-    )} Fingerprint`;
-    statusMessage.value = `Click "Scan ${getOrdinalNumber(
-      currentFingerprintIndex.value + 1
-    )} Fingerprint" to continue`;
-  } else {
-    status.value = "success";
-    statusTitle.value = "All Fingerprints Captured";
-    statusMessage.value = 'Click "Complete Registration" to finish';
+
+    if (isAllScansComplete.value) {
+      status.value = "success";
+      statusTitle.value = "All Scans Complete";
+      statusMessage.value = 'Click "Complete Registration" to finish';
+    } else {
+      status.value = "ready";
+      statusTitle.value = getCurrentScanPrompt.value;
+      statusMessage.value = `Click "${getScanButtonText.value}" to continue`;
+    }
   }
 };
 
-const getOrdinalNumber = (num) => {
-  const ordinals = ["First", "Second", "Third"];
-  return ordinals[num - 1] || `${num}th`;
-};
+const handleCompleteRegistration = async () => {
+  const result = await completeRegistration();
 
-const completeRegistration = async () => {
-  try {
-    // Send registration data to backend
-    const result = await submitRegistration({
-      userDetails: userDetails.value,
-      fingerprints: capturedFingerprints.value,
-    });
-
-    if (result.success) {
-      currentStep.value = "complete";
-
-      // Also store in localStorage for demo purposes
-      const users = JSON.parse(localStorage.getItem("registeredUsers") || "[]");
-      users.push(result.user);
-      localStorage.setItem("registeredUsers", JSON.stringify(users));
-    } else {
-      status.value = "error";
-      statusTitle.value = "Registration Failed";
-      statusMessage.value =
-        result.message || "Failed to complete registration. Please try again.";
-    }
-  } catch (error) {
+  if (result.success) {
+    status.value = "success";
+    statusTitle.value = "Registration Complete";
+    statusMessage.value = "Your account has been created successfully!";
+  } else {
     status.value = "error";
     statusTitle.value = "Registration Failed";
-    statusMessage.value = "Failed to complete registration. Please try again.";
-    console.error("Registration error:", error);
-  }
-};
-
-const mockUploadFingerprint = async (fingerprintData) => {
-  // Simulate individual fingerprint processing delay
-  await new Promise((resolve) => setTimeout(resolve, 800));
-
-  console.log(
-    `Fingerprint ${fingerprintData.index + 1} processed successfully`
-  );
-};
-
-const submitRegistration = async (registrationData) => {
-  try {
-    const response = await fetch("http://localhost:8080/api/auth/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(registrationData),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const result = await response.json();
-    return result;
-  } catch (error) {
-    console.error("Registration API error:", error);
-    throw error;
+    statusMessage.value =
+      result.error || "Failed to complete registration. Please try again.";
   }
 };
 </script>
@@ -355,31 +338,45 @@ const submitRegistration = async (registrationData) => {
   margin-bottom: 1.5rem;
 }
 
-.fingerprint-progress {
+.thumb-progress {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.current-thumb-info h4 {
+  color: #667eea;
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.current-thumb-info span {
+  color: #718096;
+  font-size: 0.9rem;
+}
+
+.overall-progress {
   margin-top: 1rem;
 }
 
-.progress-dots {
-  display: flex;
-  justify-content: center;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
+.overall-progress span {
+  color: #4a5568;
+  font-size: 0.9rem;
+  display: block;
+  margin-bottom: 0.5rem;
 }
 
-.dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
+.progress-bar-container {
   background-color: #e2e8f0;
-  transition: background-color 0.3s;
+  height: 6px;
+  border-radius: 3px;
+  overflow: hidden;
 }
 
-.dot.active {
+.progress-bar-fill {
   background-color: #667eea;
-}
-
-.dot.completed {
-  background-color: #48bb78;
+  height: 100%;
+  transition: width 0.3s ease;
+  border-radius: 3px;
 }
 
 .button-group {
@@ -417,42 +414,52 @@ const submitRegistration = async (registrationData) => {
   background-color: #38a169;
 }
 
-.captured-fingerprints {
+.captured-scans {
   margin: 1.5rem 0;
   padding: 1rem;
   background-color: #f7fafc;
   border-radius: 8px;
 }
 
-.captured-fingerprints h4 {
-  margin: 0 0 1rem 0;
-  color: #2d3748;
+.thumb-section {
+  margin-bottom: 1.5rem;
 }
 
-.fingerprint-list {
+.thumb-section:last-child {
+  margin-bottom: 0;
+}
+
+.thumb-section h4 {
+  margin: 0 0 1rem 0;
+  color: #2d3748;
+  font-size: 1rem;
+}
+
+.scan-list {
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
   flex-wrap: wrap;
 }
 
-.fingerprint-item {
+.scan-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.25rem;
 }
 
-.fingerprint-item img {
-  width: 80px;
-  height: 80px;
+.scan-item img {
+  width: 60px;
+  height: 60px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: 6px;
   border: 2px solid #48bb78;
 }
 
-.fingerprint-item span {
-  font-size: 0.875rem;
+.scan-item span {
+  font-size: 0.75rem;
   color: #718096;
+  text-align: center;
 }
 
 .complete-registration {
