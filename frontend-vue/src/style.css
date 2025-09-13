@@ -5,8 +5,8 @@
 }
 
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -22,7 +22,7 @@ body {
   background: white;
   border-radius: 20px;
   padding: 2rem;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   text-align: center;
 }
 
@@ -101,12 +101,28 @@ h1 {
   transform: none;
 }
 
+.btn-primary {
+  background: #667eea;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #5a67d8;
+}
+
 .btn-secondary {
   background: #6c757d;
 }
 
 .btn-secondary:hover:not(:disabled) {
   background: #545b62;
+}
+
+.btn-success {
+  background: #48bb78;
+}
+
+.btn-success:hover:not(:disabled) {
+  background: #38a169;
 }
 
 .progress-bar {
@@ -126,7 +142,9 @@ h1 {
 }
 
 @keyframes progress {
-  to { width: 100%; }
+  to {
+    width: 100%;
+  }
 }
 
 .preview-section {
@@ -147,13 +165,22 @@ h1 {
   max-width: 100%;
   height: auto;
   border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.fade-enter-active, .fade-leave-active {
+.preview-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.fade-enter-active,
+.fade-leave-active {
   transition: opacity 0.3s;
 }
 
-.fade-enter-from, .fade-leave-to {
+.fade-enter-from,
+.fade-leave-to {
   opacity: 0;
 }

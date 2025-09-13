@@ -8,13 +8,23 @@
         class="fingerprint-image"
       />
     </div>
-    <button 
-      class="btn btn-secondary" 
-      @click="$emit('retakeScan')"
-    >
-      <span>🔄</span>
-      Retake
-    </button>
+    <div class="preview-actions">
+      <button 
+        class="btn btn-secondary" 
+        @click="$emit('retakeScan')"
+      >
+        <span>🔄</span>
+        Retake
+      </button>
+      <button 
+        v-if="actionText"
+        class="btn btn-primary" 
+        @click="$emit('confirmAction')"
+      >
+        <span>✓</span>
+        {{ actionText }}
+      </button>
+    </div>
   </div>
 </template>
 
@@ -23,8 +33,12 @@ defineProps({
   imageUrl: {
     type: String,
     required: true
+  },
+  actionText: {
+    type: String,
+    default: 'Upload to System'
   }
 })
 
-defineEmits(['retakeScan'])
+defineEmits(['retakeScan', 'confirmAction'])
 </script>

@@ -6,8 +6,8 @@
 }
 
 body {
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   min-height: 100vh;
   color: #333;
   line-height: 1.6;
@@ -208,7 +208,6 @@ header p {
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #667eea, #764ba2);
   width: 0%;
   animation: progress-pulse 2s ease-in-out infinite;
   transition: width 0.3s ease;

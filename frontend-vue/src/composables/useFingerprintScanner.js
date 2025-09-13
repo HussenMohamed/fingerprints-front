@@ -17,6 +17,7 @@ export function useFingerprintScanner() {
   const statusIcon = ref('🔍')
   const isScanning = ref(false)
   const capturedImage = ref(null)
+  const capturedImageBase64 = ref(null)
   const pollInterval = ref(null)
   const scanTimeout = ref(null)
 
@@ -77,6 +78,7 @@ export function useFingerprintScanner() {
     try {
       isScanning.value = true
       capturedImage.value = null
+      capturedImageBase64.value = null
       updateStatus('scanning', 'Scanning...', 'Place your finger on the sensor')
 
       await triggerScan()
@@ -100,6 +102,7 @@ export function useFingerprintScanner() {
 
   const retakeScan = () => {
     capturedImage.value = null
+    capturedImageBase64.value = null
     startScan()
   }
 
@@ -178,12 +181,31 @@ export function useFingerprintScanner() {
       const response = await fetch('/api/image')
       if (response.ok) {
         const blob = await response.blob()
+        
+        // Convert blob to base64 and store it
+        const base64 = await blobToBase64(blob)
+        capturedImageBase64.value = base64
+        
+        // Create object URL for display
         return URL.createObjectURL(blob)
       }
       throw new Error('Could not load image')
     } catch (error) {
       throw new Error(`Failed to load image: ${error.message}`)
     }
+  }
+  
+  const blobToBase64 = (blob) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => {
+        // Remove the data:image/...;base64, prefix
+        const base64 = reader.result.split(',')[1]
+        resolve(base64)
+      }
+      reader.onerror = reject
+      reader.readAsDataURL(blob)
+    })
   }
 
   onMounted(() => {
@@ -202,6 +224,7 @@ export function useFingerprintScanner() {
     statusIcon,
     isScanning,
     capturedImage,
+    capturedImageBase64,
     startScan,
     cancelScan,
     retakeScan

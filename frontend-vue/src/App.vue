@@ -1,53 +1,28 @@
 <template>
-  <div class="container">
-    <h1>🔐 Fingerprint Scanner</h1>
-    
-    <StatusCard 
-      :status="status"
-      :icon="statusIcon"
-      :title="statusTitle"
-      :message="statusMessage"
-    />
-
-    <div class="button-group">
-      <ScanButton 
-        :is-scanning="isScanning"
-        @start-scan="startScan"
-      />
-      
-      <CancelButton 
-        v-if="isScanning"
-        @cancel-scan="cancelScan"
-      />
-    </div>
-
-    <ProgressBar v-if="isScanning" />
-
-    <PreviewSection 
-      v-if="capturedImage"
-      :image-url="capturedImage"
-      @retake-scan="retakeScan"
-    />
+  <div id="app">
+    <router-view />
   </div>
 </template>
 
 <script setup>
-import { useFingerprintScanner } from './composables/useFingerprintScanner'
-import StatusCard from './components/StatusCard.vue'
-import ScanButton from './components/ScanButton.vue'
-import CancelButton from './components/CancelButton.vue'
-import ProgressBar from './components/ProgressBar.vue'
-import PreviewSection from './components/PreviewSection.vue'
-
-const {
-  status,
-  statusTitle,
-  statusMessage,
-  statusIcon,
-  isScanning,
-  capturedImage,
-  startScan,
-  cancelScan,
-  retakeScan
-} = useFingerprintScanner()
+// App.vue now serves as the root router outlet
 </script>
+
+<style>
+#app {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background-color: #f7fafc;
+}
+</style>

@@ -1,11 +1,11 @@
 <template>
   <button 
-    class="btn" 
+    class="btn btn-primary" 
     :disabled="isScanning"
     @click="$emit('startScan')"
   >
     <span>{{ isScanning ? '⏳' : '👆' }}</span>
-    {{ isScanning ? 'Scanning...' : 'Start Scan' }}
+    {{ buttonText || (isScanning ? 'Scanning...' : 'Start Scan') }}
   </button>
 </template>
 
@@ -14,6 +14,10 @@ defineProps({
   isScanning: {
     type: Boolean,
     required: true
+  },
+  buttonText: {
+    type: String,
+    default: ''
   }
 })
 
