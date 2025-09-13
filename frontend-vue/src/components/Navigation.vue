@@ -75,7 +75,6 @@ onMounted(() => {
   background-color: white;
   padding: 1rem 0;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  position: sticky;
   top: 0;
   z-index: 100;
   color: linear-gradient(135deg, #667eea 0%, #764ba2 100%);

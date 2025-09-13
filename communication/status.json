@@ -1,7 +1,7 @@
 {
   "status": "success",
   "message": "Fingerprint captured successfully!",
-  "timestamp": "2025-09-13T15:48:38.637581",
+  "timestamp": "2025-09-13T15:51:44.775203",
   "image_path": "C:\\fingerprint_webapp\\communication\\latest_capture.bmp",
   "error": null
 }

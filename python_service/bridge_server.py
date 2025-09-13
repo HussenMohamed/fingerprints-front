@@ -31,13 +31,13 @@ class FingerprintBridgeHandler(BaseHTTPRequestHandler):
             # Verify authentication token
             self.verify_token()
             
-        elif path.startswith('/api/user/profile'):
-            # Get user profile
-            self.get_user_profile()
+        # elif path.startswith('/api/user/profile'):
+        #     # Get user profile
+        #     self.get_user_profile()
             
-        elif path.startswith('/api/user/login-history'):
-            # Get user login history
-            self.get_login_history()
+        # elif path.startswith('/api/user/login-history'):
+        #     # Get user login history
+        #     self.get_login_history()
             
         elif path.startswith('/api/admin/stats'):
             # Get system statistics
@@ -70,15 +70,15 @@ class FingerprintBridgeHandler(BaseHTTPRequestHandler):
         if path == '/api/trigger-scan':
             # Create capture request flag
             self.trigger_scan()
-        elif path == '/api/auth/login':
-            # Handle login fingerprint authentication
-            self.handle_login()
-        elif path == '/api/auth/register':
-            # Handle user registration
-            self.handle_registration()
-        elif path == '/api/auth/logout':
-            # Handle user logout
-            self.handle_logout()
+        # elif path == '/api/auth/login':
+        #     # Handle login fingerprint authentication
+        #     self.handle_login()
+        # elif path == '/api/auth/register':
+        #     # Handle user registration
+        #     self.handle_registration()
+        # elif path == '/api/auth/logout':
+        #     # Handle user logout
+        #     self.handle_logout()
         else:
             self.send_error(404, "Endpoint not found")
     
