@@ -23,15 +23,6 @@
           <span class="nav-icon">📝</span>
           Register
         </router-link>
-
-        <button
-          v-if="isAuthenticated"
-          @click="handleLogout"
-          class="nav-link logout-btn"
-        >
-          <span class="nav-icon">🚪</span>
-          Logout
-        </button>
       </div>
     </div>
   </nav>
@@ -103,7 +94,7 @@ onMounted(() => {
 
 .nav-brand h2 {
   color: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  margin: 0;
+  margin: 10px;
   font-size: 1.5rem;
   font-weight: 700;
 }
